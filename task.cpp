@@ -18,52 +18,65 @@ void Help()
 
 void List()
 {
-    ifstream in("task.txt");
+    ifstream in;
+    in.open("task.txt");
     string st;
-    while (in.eof() == 0)
+    getline(in, st);
+    if (st == "")
+        cout << "There are no pending tasks!" << endl;
+    else
     {
-        getline(in, st);
         cout << st << "\n";
+        while (in.eof() == 0)
+        {
+            getline(in, st);
+            cout << st << "\n";
+        }
     }
+    in.close();
 }
 void Report()
 {
-    ifstream in1("task.txt");
-    string st, st1 = "", st2 = "";
+    ifstream in1, in2;
+    in1.open("task.txt");
+    in2.open("completed.txt");
+    string str1, str2, st1 = "", st2 = "";
     int taskline = 0, compline = 0;
-    getline(in1, st);
-    if (st != "")
+    getline(in1, str1);
+    if (str1 != "")
     {
         in1.seekg(0);
         while (in1.eof() == 0)
         {
             ++taskline;
-            getline(in1, st);
-            st1 += st + "\n";
+            getline(in1, str1);
+            st1 += str1 + "\n";
         }
     }
     cout << "Pending : " << to_string(taskline) << endl
          << st1 << endl;
-    ifstream in2("completed.txt");
-    getline(in2, st);
-    if (st != "")
+    in1.close();
+    getline(in2, str2);
+    if (str2 != "")
     {
         in2.seekg(0);
         while (in2.eof() == 0)
         {
             ++compline;
-            getline(in2, st);
-            st2 += st + "\n";
+            getline(in2, str2);
+            st2 += str2 + "\n";
         }
     }
     cout << "Completed : " << to_string(compline) << endl
-         << st2;
+         << st2 << endl;
+    in2.close();
 }
 
 void Add(int priority, string task_to_do)
 {
     string old_val = "", st, st1 = "";
-    ifstream in("task.txt");
+    ifstream in;
+    in.open("task.txt");
     getline(in, st);
     int index = 1;
     if (st != "")
@@ -110,32 +123,39 @@ void Add(int priority, string task_to_do)
                 next_index++;
             }
         }
-        ofstream out("task.txt");
+        ofstream out;
+        out.open("task.txt");
         if (added)
         {
             int x = st1.length() - 1;
             st1 = st1.substr(0, x);
             out << st1;
-            cout << "Added task: "+task_to_do+" with priority "+to_string(priority);
+            cout << "Added task: \"" + task_to_do + "\" with priority " + to_string(priority);
         }
         else
         {
             st1 += to_string(index) + ". " + task_to_do + " [" + to_string(priority) + "]";
             out << st1;
-            cout << "Added task: "+task_to_do+" with priority "+to_string(priority);
+            cout << "Added task: \"" + task_to_do + "\" with priority " + to_string(priority);
         }
+        out.close();
     }
     else
     {
-        ofstream out("task.txt");
+        ofstream out;
+        out.open("task.txt");
         string val = old_val + to_string(index) + ". " + task_to_do + " [" + to_string(priority) + "]";
         out << val;
+        cout << "Added task: \"" + task_to_do + "\" with priority " + to_string(priority);
+        out.close();
     }
+    in.close();
 }
 void Del(int index)
 {
     int line_no = 1;
-    ifstream in("task.txt");
+    ifstream in;
+    in.open("task.txt");
     string st, st1 = "";
     bool found = false;
     while (in.eof() == 0)
@@ -165,19 +185,23 @@ void Del(int index)
     }
     if (found)
     {
-        ofstream out("task.txt");
+        ofstream out;
+        out.open("task.txt");
         int x = st1.length() - 1;
         st1 = st1.substr(0, x);
         out << st1;
-        cout << "Deleted item with index " + to_string(index);
+        cout << "Deleted task #" + to_string(index);
+        out.close();
     }
     else
-        cout << "Error: item with index" + to_string(index) + "does not exist. Nothing deleted.";
+        cout << "Error: task with index #" + to_string(index) + "does not exist. Nothing deleted.";
+    in.close();
 }
 void Done(int index)
 {
     int line_no = 1;
-    ifstream in("task.txt");
+    ifstream in;
+    in.open("task.txt");
     string st, st1 = "";
     bool found = false;
     while (in.eof() == 0)
@@ -197,6 +221,7 @@ void Done(int index)
             compfile << task;
             found = true;
             line_no++;
+            compfile.close();
         }
         else
         {
@@ -212,14 +237,17 @@ void Done(int index)
     }
     if (found)
     {
-        ofstream out("task.txt");
+        ofstream out;
+        out.open("task.txt");
         int x = st1.length() - 1;
         st1 = st1.substr(0, x);
         out << st1;
         cout << "Marked item as done.";
+        out.close();
     }
     else
-        cout << "Error: no incomplete item with index " + to_string(index) + " exists.";
+        cout << "Error: no incomplete item with index #" + to_string(index) + " exists.";
+    in.close();
 }
 int main(int argc, char *argv[])
 {
@@ -228,27 +256,38 @@ int main(int argc, char *argv[])
     else
     {
         string work = argv[1];
-        if (argc == 2)
+
+        if (work == "help" && argc == 2)
+            Help();
+        else if (work == "report" && argc == 2)
         {
-            if (work == "help")
-                Help();
-            else if (work == "report")
-                Report();
-            else if (work == "ls")
-                List();
+            // ofstream out;
+            // out.open("completed.txt");
+            // out.close();
+            Report();
         }
-        else if (argc == 3)
+
+        else if (work == "ls" && argc == 2)
+            List();
+        // {
+        //     // cout << "listing...\n";
+        // }
+        else if (work == "del" && argc == 3)
         {
             int index = 0;
             string ind = (argv[2]);
             stringstream x(ind);
-            x >> index;
-            if (work == "del")
-                Del(index);
-            else if (work == "done")
-                Done(index);
+            Del(index);
         }
-        else
+        else if (work == "done" && argc == 3)
+        {
+            int index = 0;
+            string ind = (argv[2]);
+            stringstream x(ind);
+            Done(index);
+        }
+
+        else if (work == "add" && argc == 4)
         {
             int priority = 0;
             string pr = (argv[2]);
@@ -256,6 +295,15 @@ int main(int argc, char *argv[])
             x >> priority;
             string task_to_do = argv[3];
             Add(priority, task_to_do);
+        }
+        else
+        {
+            if (work == "add" && argc < 4)
+                cout << "Error: Missing tasks string. Nothing added!" << endl;
+            else if (work == "del" && argc < 3)
+                cout << "Error: Missing NUMBER for deleting tasks." << endl;
+            else if (work == "done" && argc < 3)
+                cout << "Error: Missing NUMBER for marking tasks as done." << endl;
         }
     }
     return 0;
